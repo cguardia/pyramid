@@ -4,6 +4,8 @@ from zope.interface import (
     )
 
 from pyramid.interfaces import (
+    IAuthenticationPolicy,
+    IAuthorizationPolicy,
     IDebugLogger,
     IRequest,
     IRootFactory,
@@ -23,7 +25,11 @@ from pyramid.events import (
     NewResponse,
     )
 
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import (
+    HTTPForbidden,
+    HTTPNotFound,
+    )
+
 from pyramid.request import Request
 from pyramid.threadlocal import manager
 
@@ -66,6 +72,7 @@ class Router(object):
         request.request_iface = IRequest
         context = None
         routes_mapper = self.routes_mapper
+        route = None
         debug_routematch = self.debug_routematch
         adapters = registry.adapters
         has_listeners = registry.has_listeners
@@ -134,6 +141,20 @@ class Router(object):
             tdict['virtual_root'],
             tdict['virtual_root_path']
             )
+
+	# if a route, check if the user has permission to match this route
+        if route is not None:
+	    permission = route.match_permission
+	    if permission:
+	        authn_policy = registry.queryUtility(IAuthenticationPolicy)
+	        authz_policy = registry.queryUtility(IAuthorizationPolicy)
+	        principals = authn_policy.effective_principals(request)
+	        permitted = authz_policy.permits(context, principals,
+        	                                 permission)
+	        if not permitted:
+	      	    forbidden_msg = ('Route %s matched but failed '
+	    	                     'match_permission check.' % route.name)
+		    raise HTTPForbidden(forbidden_msg, permitted)
 
         attrs.update(tdict)
         has_listeners and notify(ContextFound(request))

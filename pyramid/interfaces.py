@@ -681,6 +681,10 @@ class IRoute(Interface):
     factory = Attribute(
         'The :term:`root factory` used by the :app:`Pyramid` router '
         'when this route matches (or ``None``)')
+    match_permission = Attribute(
+        'When a route matches, the user will be required by the '
+        ':app:`Pyramid` router to have this permission. This is'
+        'independent of any view permissions declared.')
     predicates = Attribute(
         'A sequence of :term:`route predicate` objects used to '
         'determine if a request matches this route or not after '

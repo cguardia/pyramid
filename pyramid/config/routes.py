@@ -44,6 +44,7 @@ class RoutesConfiguratorMixin(object):
                   path=None,
                   pregenerator=None,
                   static=False,
+                  match_permission=None,
                   ):
         """ Add a :term:`route configuration` to the current
         configuration state, as well as possibly a :term:`view
@@ -141,6 +142,17 @@ class RoutesConfiguratorMixin(object):
           ``static`` is ``False``.  See :ref:`static_route_narr`.
 
           .. note:: New in :app:`Pyramid` 1.1.
+
+        match_permission
+
+          The permission name required to make the route match,
+          e.g. ``edit``. (see :ref:`using_security_with_urldispatch`
+          for more information about permissions).
+
+          This permission takes precedence over any permissions for
+          views associated with this route.
+          
+          .. note:: New in :app:`Pyramid` 1.4.
 
         Predicate Arguments
 
@@ -389,6 +401,7 @@ class RoutesConfiguratorMixin(object):
         intr['header'] = header
         intr['accept'] = accept
         intr['traverse'] = traverse
+        intr['match_permission'] = match_permission
         intr['custom_predicates'] = custom_predicates
         intr['pregenerator'] = pregenerator
         intr['static'] = static
@@ -418,8 +431,8 @@ class RoutesConfiguratorMixin(object):
 
         def register_connect():
             route = mapper.connect(
-                name, pattern, factory, predicates=predicates,
-                pregenerator=pregenerator, static=static
+                name, pattern, factory, match_permission=match_permission,
+                predicates=predicates, pregenerator=pregenerator, static=static
                 )
             intr['object'] = route
             return route

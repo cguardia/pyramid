@@ -28,13 +28,14 @@ _marker = object()
 
 @implementer(IRoute)
 class Route(object):
-    def __init__(self, name, pattern, factory=None, predicates=(),
-                 pregenerator=None):
+    def __init__(self, name, pattern, factory=None, match_permission=None,
+                 predicates=(), pregenerator=None):
         self.pattern = pattern
         self.path = pattern # indefinite b/w compat, not in interface
         self.match, self.generate = _compile_route(pattern)
         self.name = name
         self.factory = factory
+        self.match_permission = match_permission
         self.predicates = predicates
         self.pregenerator = pregenerator
 
@@ -53,13 +54,14 @@ class RoutesMapper(object):
     def get_route(self, name):
         return self.routes.get(name)
 
-    def connect(self, name, pattern, factory=None, predicates=(),
-                pregenerator=None, static=False):
+    def connect(self, name, pattern, factory=None, match_permission=None,
+                predicates=(), pregenerator=None, static=False):
         if name in self.routes:
             oldroute = self.routes[name]
             if oldroute in self.routelist:
                 self.routelist.remove(oldroute)
-        route = Route(name, pattern, factory, predicates, pregenerator)
+        route = Route(name, pattern, factory, match_permission, predicates,
+                      pregenerator)
         if not static:
             self.routelist.append(route)
         self.routes[name] = route
